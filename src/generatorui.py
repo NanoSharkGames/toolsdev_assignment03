@@ -2,6 +2,7 @@ import maya.OpenMayaUI as omui
 from PySide2 import QtWidgets, QtCore
 from shiboken2 import wrapInstance
 
+import generator
 
 def maya_main_window():
 
@@ -10,7 +11,7 @@ def maya_main_window():
     return wrapInstance(long(main_window), QtWidgets.QWidget)
 
 
-class GeneratorUI(QtWidgets.QWidget):
+class GeneratorUI(QtWidgets.QDialog):
 
     def __init__(self):
 
@@ -19,13 +20,23 @@ class GeneratorUI(QtWidgets.QWidget):
         # Makes this line Python 2 and 3 compatible.
         super(GeneratorUI, self).__init__(parent=maya_main_window())
         self.setWindowTitle("Random Dungeon Generator")
-        self.resize(600, 400)
+        self.resize(400, 200)
         self.setWindowFlags(self.windowFlags() ^ QtCore.Qt.WindowContextHelpButtonHint)
+
+        # Create the generator
+        self.gen = generator.Generator()
+
+        # Assign this UI as the generator's UI
+        self.gen.genui = self
 
         self.create_widgets()
         self.create_layouts()
+        self.create_connections()
 
     def create_widgets(self):
+
+        # Reset the generator's attributes on load
+        self.gen.reset_attributes()
 
         """Create widgets for our UI"""
 
@@ -53,7 +64,7 @@ class GeneratorUI(QtWidgets.QWidget):
         self.roomwidthmaxlbl = QtWidgets.QLabel("-")
         self.roomwidthmaxle = QtWidgets.QLineEdit()
 
-        self.roomheightminlbl = QtWidgets.QLabel("Room Height Min.")
+        self.roomheightminlbl = QtWidgets.QLabel("Room Height")
         self.roomheightminle = QtWidgets.QLineEdit()
         self.roomheightmaxlbl = QtWidgets.QLabel("-")
         self.roomheightmaxle = QtWidgets.QLineEdit()
@@ -63,8 +74,9 @@ class GeneratorUI(QtWidgets.QWidget):
         self.branchinglbl = QtWidgets.QLabel("Branching?")
         self.branchingchk = QtWidgets.QCheckBox()
 
-        # Define generate button widget
+        # Define button widgets
 
+        self.cancelbtn = QtWidgets.QPushButton("Cancel")
         self.generatebtn = QtWidgets.QPushButton("Generate")
 
     def create_layouts(self):
@@ -147,10 +159,37 @@ class GeneratorUI(QtWidgets.QWidget):
         self.bodylayout.addLayout(self.leftlayout)
         self.bodylayout.addLayout(self.rightlayout)
 
+        # Define button layout
+        self.buttonlayout = QtWidgets.QHBoxLayout()
+        self.buttonlayout.addWidget(self.cancelbtn)
+        self.buttonlayout.addWidget(self.generatebtn)
+
         # Define main layout
         self.mainlayout = QtWidgets.QVBoxLayout()
         self.mainlayout.addWidget(self.titlelbl)
         self.mainlayout.addLayout(self.bodylayout)
-        self.mainlayout.addWidget(self.generatebtn)
+        self.mainlayout.addLayout(self.buttonlayout)
+
+        self.mainlayout.addStretch()
 
         self.setLayout(self.mainlayout)
+
+    def create_connections(self):
+
+        """Connects to widget signals to slots"""
+
+        self.cancelbtn.clicked.connect(self.cancel)
+        self.generatebtn.clicked.connect(self.generate)
+
+    @QtCore.Slot()
+    def cancel(self):
+
+        """Quits the dialog"""
+
+        self.close()
+
+    def generate(self):
+
+        """Generates the dungeon"""
+
+        self.gen.initialize_generation()

@@ -22,7 +22,6 @@ class BasicUI(QtWidgets.QDialog):
         self.setLayout(self.layout)
 
 if __name__ == '__main__':
-    maya.core.
     app = QtWidgets.QApplication()
     window = BasicUI()
     window.show()
