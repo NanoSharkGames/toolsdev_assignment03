@@ -29,6 +29,8 @@ class GeneratorUI(QtWidgets.QDialog):
         # Assign this UI as the generator's UI
         self.gen.genui = self
 
+        self.gen.reset_attributes()
+
         self.create_widgets()
         self.create_layouts()
         self.create_connections()
@@ -49,30 +51,38 @@ class GeneratorUI(QtWidgets.QDialog):
 
         self.roomcountlbl = QtWidgets.QLabel("Room Count")
         self.roomcountle = QtWidgets.QLineEdit()
+        self.roomcountle.setText(str(self.gen.roomMax))
 
         # Define room start position widgets
 
         self.roomstartxlbl = QtWidgets.QLabel("Room Start X")
         self.roomstartxle = QtWidgets.QLineEdit()
+        self.roomstartxle.setText(str(self.gen.roomStartX))
         self.roomstartylbl = QtWidgets.QLabel("Room Start Y")
         self.roomstartyle = QtWidgets.QLineEdit()
+        self.roomstartyle.setText(str(self.gen.roomStartY))
 
         # Define room dimension widgets
 
         self.roomwidthminlbl = QtWidgets.QLabel("Room Width")
         self.roomwidthminle = QtWidgets.QLineEdit()
+        self.roomwidthminle.setText(str(self.gen.roomWidthMin))
         self.roomwidthmaxlbl = QtWidgets.QLabel("-")
         self.roomwidthmaxle = QtWidgets.QLineEdit()
+        self.roomwidthmaxle.setText(str(self.gen.roomWidthMax))
 
         self.roomheightminlbl = QtWidgets.QLabel("Room Height")
         self.roomheightminle = QtWidgets.QLineEdit()
+        self.roomheightminle.setText(str(self.gen.roomHeightMin))
         self.roomheightmaxlbl = QtWidgets.QLabel("-")
         self.roomheightmaxle = QtWidgets.QLineEdit()
+        self.roomheightmaxle.setText(str(self.gen.roomHeightMax))
 
         # Define branching boolean widgets
 
         self.branchinglbl = QtWidgets.QLabel("Branching?")
         self.branchingchk = QtWidgets.QCheckBox()
+        self.branchingchk.setChecked(True)
 
         # Define button widgets
 

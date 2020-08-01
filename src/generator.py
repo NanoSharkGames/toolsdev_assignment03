@@ -20,8 +20,8 @@ class Generator:
         self.roomMax = 10
 
         # The first room's x and y positions
-        self.roomStartX = 0
-        self.roomStartY = 0
+        self.roomStartX = 0.0
+        self.roomStartY = 0.0
 
         # The range of room widths and heights to spawn
         self.roomWidthMin = 1
@@ -33,8 +33,8 @@ class Generator:
         self.branching = True
 
         # The current x and y that the generator is positioned at
-        self.curX = 0
-        self.curY = 0
+        self.curX = 0.0
+        self.curY = 0.0
 
         # The generator's current room that is being appended with a corridor
         self.curRoom = None
@@ -64,8 +64,8 @@ class Generator:
 
         self.roomMax = int(self.genui.roomcountle.text())
 
-        self.roomStartX = int(self.genui.roomstartxle.text())
-        self.roomStartY = int(self.genui.roomstartyle.text())
+        self.roomStartX = float(self.genui.roomstartxle.text())
+        self.roomStartY = float(self.genui.roomstartyle.text())
 
         self.roomWidthMin = int(self.genui.roomwidthminle.text())
         self.roomWidthMax = int(self.genui.roomwidthmaxle.text())
@@ -99,12 +99,7 @@ class Generator:
                 self.curRoom.leftOpening = False
 
         # Create a room object
-        _room = room.Room
-
-        # Assign the room object's coordinates and size
-
-        _room.roomX = roomX
-        _room.roomY = roomY
+        _room = room.Room(roomX, roomY)
 
         _room.roomWidth = roomWidth
         _room.roomHeight = roomHeight
@@ -116,7 +111,7 @@ class Generator:
         _room.roomMesh = cmds.polyPlane(w=roomWidth, h=roomHeight, n=roomName)
 
         # Move the room to its appropriate position in the dungeon
-        cmds.move(roomX, 0, roomY, roomName)
+        cmds.move(float(roomX), 0.0, float(roomY), roomName)
 
         # Add the room object to the list of rooms
         self.roomList.append(_room)
@@ -164,6 +159,8 @@ class Generator:
 
             # If a room is available, spawn a corridor and connect with another room
             if self.curRoom is not None:
+                self.curX = self.curRoom.roomX
+                self.curY = self.curRoom.roomY
                 self.create_and_connect_rooms()
 
     def create_and_connect_rooms(self):
@@ -197,7 +194,7 @@ class Generator:
 
             self.corridorDirections.remove(self.corridorCurDirection)
 
-        del self.corridorDirections
+        del self.corridorDirections[:]
 
         if corridorCanBePlaced:
 
@@ -213,20 +210,26 @@ class Generator:
             corridorName = 'Corridor' + str(self.corridorCount + 1)
 
             if self.corridorCurDirection == 'NORTH' or self.corridorCurDirection == 'SOUTH':
-                _corridor.corridorMesh = cmds.polyPlane(w=_corridor.corridorWidth, h=_corridor.corridorLength, n=corridorName)
+                _corridor.corridorMesh = cmds.polyPlane(w=0.5, h=_corridor.corridorLength, n=corridorName)
             if self.corridorCurDirection == 'EAST' or self.corridorCurDirection == 'WEST':
-                _corridor.corridorMesh = cmds.polyPlane(w=_corridor.corridorLength, h=_corridor.corridorWidth, n=corridorName)
+                _corridor.corridorMesh = cmds.polyPlane(w=_corridor.corridorLength, h=0.5, n=corridorName)
 
             _corridor.place_corridor(self.curRoom, self.corridorCurDirection)
 
+            self.corridorCount += 1
+
             if self.corridorCurDirection == 'NORTH':
-                self.curY -= self.curRoom.roomHeight / 2 + _corridor.corridorLength + newRoomHeight / 2
+                self.curY = float(self.curY - self.curRoom.roomHeight / 2 - _corridor.corridorLength - newRoomHeight / 2)
             elif self.corridorCurDirection == 'SOUTH':
-                self.curY += self.curRoom.roomHeight / 2 + _corridor.corridorLength + newRoomHeight / 2
+                self.curY = float(self.curY + self.curRoom.roomHeight / 2 + _corridor.corridorLength + newRoomHeight / 2)
             elif self.corridorCurDirection == 'EAST':
-                self.curX -= self.curRoom.roomWidth / 2 + _corridor.corridorLength + newRoomWidth / 2
+                self.curX = float(self.curX + self.curRoom.roomWidth / 2 + _corridor.corridorLength + newRoomWidth / 2)
             elif self.corridorCurDirection == 'WEST':
-                self.curX += self.curRoom.roomWidth / 2 + _corridor.corridorLength + newRoomWidth / 2
+                self.curX = float(self.curX - self.curRoom.roomWidth / 2 - _corridor.corridorLength - newRoomWidth / 2)]
+
+            print(str(self.curX) + '/' + str(self.curY))
+
+            self.create_room(self.curX, self.curY, newRoomWidth, newRoomHeight)
 
     def all_directions_blocked(self):
 
@@ -244,8 +247,10 @@ class Generator:
             cmds.delete(rm)
 
         del self.roomList[:]
+        del self.corridorList[:]
 
         self.roomCount = 0
+        self.corridorCount = 0
 
         self.curRoom = None
 
@@ -256,10 +261,10 @@ class Generator:
         self.roomStartX = 0
         self.roomStartY = 0
 
-        self.roomWidthMin = 1
-        self.roomWidthMax = 5
+        self.roomWidthMin = 2
+        self.roomWidthMax = 4
 
-        self.roomHeightMin = 1
-        self.roomHeightMax = 5
+        self.roomHeightMin = 2
+        self.roomHeightMax = 4
 
         self.branching = True
