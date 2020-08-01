@@ -88,7 +88,10 @@ class Generator:
 
     def create_room(self, roomX, roomY, roomWidth, roomHeight):
 
+        # If there is a room that the generator is located at (a previous room has been created)
         if self.curRoom != None:
+
+            # Close off openings based on corridor direction
             if self.corridorCurDirection == 'NORTH':
                 self.curRoom.topOpening = False
             elif self.corridorCurDirection == 'SOUTH':
@@ -101,6 +104,7 @@ class Generator:
         # Create a room object
         _room = room.Room(roomX, roomY)
 
+        # Assign room's width and height
         _room.roomWidth = roomWidth
         _room.roomHeight = roomHeight
 
@@ -111,7 +115,7 @@ class Generator:
         _room.roomMesh = cmds.polyPlane(w=roomWidth, h=roomHeight, n=roomName)
 
         # Move the room to its appropriate position in the dungeon
-        cmds.move(float(roomX), 0.0, float(roomY), roomName)
+        cmds.move(roomX, 0.0, roomY, roomName)
 
         # Add the room object to the list of rooms
         self.roomList.append(_room)
@@ -159,25 +163,38 @@ class Generator:
 
             # If a room is available, spawn a corridor and connect with another room
             if self.curRoom is not None:
+
+                # Update current x and y
                 self.curX = self.curRoom.roomX
                 self.curY = self.curRoom.roomY
+
                 self.create_and_connect_rooms()
 
     def create_and_connect_rooms(self):
+
+        # Gather all four cardinal directions
 
         self.corridorDirections.append('NORTH')
         self.corridorDirections.append('SOUTH')
         self.corridorDirections.append('EAST')
         self.corridorDirections.append('WEST')
 
+        """
+        Go through all cardinal directions and check where to place corridor
+        until an empty opening has been spotted
+        """
+
         corridorCanBePlaced = False
 
         while not corridorCanBePlaced:
 
+            # Grab a random unexplored direction
             if len(self.corridorDirections) > 0:
                 self.corridorCurDirection = self.corridorDirections[random.randint(0, len(self.corridorDirections) - 1)]
             else:
                 break
+
+            # Check for an opening in that direction from the current room
 
             if self.corridorCurDirection == 'NORTH':
                 if self.curRoom.topOpening:
@@ -192,8 +209,10 @@ class Generator:
                 if self.curRoom.leftOpening:
                     corridorCanBePlaced = True
 
+            # Remove the cardinal direction from the direction list as it has been explored
             self.corridorDirections.remove(self.corridorCurDirection)
 
+        # Clear the corridor direction list for later re-population
         del self.corridorDirections[:]
 
         if corridorCanBePlaced:
@@ -202,36 +221,45 @@ class Generator:
             newRoomWidth = random.randint(self.roomWidthMin, self.roomWidthMax)
             newRoomHeight = random.randint(self.roomHeightMin, self.roomHeightMax)
 
+            # Create a new corridor
+
             _corridor = corridor.Corridor()
 
+            # Assign the current room as the room where the corridor branches from
             _corridor.startingRoom = self.curRoom
 
             # Determine the resource name for the corridor plane's mesh
             corridorName = 'Corridor' + str(self.corridorCount + 1)
 
+            # Align corridor based on horizontal or vertical orientation
             if self.corridorCurDirection == 'NORTH' or self.corridorCurDirection == 'SOUTH':
                 _corridor.corridorMesh = cmds.polyPlane(w=0.5, h=_corridor.corridorLength, n=corridorName)
             if self.corridorCurDirection == 'EAST' or self.corridorCurDirection == 'WEST':
                 _corridor.corridorMesh = cmds.polyPlane(w=_corridor.corridorLength, h=0.5, n=corridorName)
 
+            # Translate the corridor to fit perfectly between the current and future room
             _corridor.place_corridor(self.curRoom, self.corridorCurDirection)
+
+            # Add the corridor object to the list of corridors
+            self.corridorList.append(_corridor)
 
             self.corridorCount += 1
 
+            # Reassign current generator x and y coordinates based on current room and new room/corridor
             if self.corridorCurDirection == 'NORTH':
-                self.curY = float(self.curY - self.curRoom.roomHeight / 2 - _corridor.corridorLength - newRoomHeight / 2)
+                self.curY -= self.curRoom.roomHeight / 2.0 + _corridor.corridorLength + newRoomHeight / 2.0
             elif self.corridorCurDirection == 'SOUTH':
-                self.curY = float(self.curY + self.curRoom.roomHeight / 2 + _corridor.corridorLength + newRoomHeight / 2)
+                self.curY += self.curRoom.roomHeight / 2.0 + _corridor.corridorLength + newRoomHeight / 2.0
             elif self.corridorCurDirection == 'EAST':
-                self.curX = float(self.curX + self.curRoom.roomWidth / 2 + _corridor.corridorLength + newRoomWidth / 2)
+                self.curX += self.curRoom.roomWidth / 2.0 + _corridor.corridorLength + newRoomWidth / 2.0
             elif self.corridorCurDirection == 'WEST':
-                self.curX = float(self.curX - self.curRoom.roomWidth / 2 - _corridor.corridorLength - newRoomWidth / 2)]
-
-            print(str(self.curX) + '/' + str(self.curY))
+                self.curX -= self.curRoom.roomWidth / 2.0 + _corridor.corridorLength + newRoomWidth / 2.0
 
             self.create_room(self.curX, self.curY, newRoomWidth, newRoomHeight)
 
     def all_directions_blocked(self):
+
+        # CHECKS IF A ROOM HAS ALL DIRECTIONS BLOCKED (HAS CORRIDORS CONNECTED)
 
         blocked = False
 
@@ -243,8 +271,13 @@ class Generator:
 
     def reset_generator(self):
 
+        # Resets all generator data to generate a new dungeon layout
+
         for rm in self.roomList:
-            cmds.delete(rm)
+            cmds.delete(rm.roomMesh)
+
+        for c in self.corridorList:
+            cmds.delete(c.corridorMesh)
 
         del self.roomList[:]
         del self.corridorList[:]
@@ -255,6 +288,8 @@ class Generator:
         self.curRoom = None
 
     def reset_attributes(self):
+
+        # Resets all generator data to populate into the Generator UI
 
         self.roomMax = 10
 

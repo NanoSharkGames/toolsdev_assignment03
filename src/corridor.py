@@ -21,19 +21,21 @@ class Corridor(object):
 
         if dir == 'NORTH':
             self.corridorX = startingRoom.roomX
-            self.corridorY = startingRoom.roomY - startingRoom.roomHeight / 2 - self.corridorLength / 2
+            self.corridorY = startingRoom.roomY - startingRoom.roomHeight / 2.0 - self.corridorLength / 2.0
 
         if dir == 'SOUTH':
             self.corridorX = startingRoom.roomX
-            self.corridorY = startingRoom.roomY + startingRoom.roomHeight / 2 + self.corridorLength / 2
+            self.corridorY = startingRoom.roomY + startingRoom.roomHeight / 2.0 + self.corridorLength / 2.0
 
         if dir == 'EAST':
-            self.corridorX = startingRoom.roomX + startingRoom.roomWidth / 2 + self.corridorLength / 2
+            self.corridorX = startingRoom.roomX + startingRoom.roomWidth / 2.0 + self.corridorLength / 2.0
             self.corridorY = startingRoom.roomY
 
         if dir == 'WEST':
-            self.corridorX = startingRoom.roomX - startingRoom.roomWidth / 2 - self.corridorLength / 2
+            self.corridorX = startingRoom.roomX - startingRoom.roomWidth / 2.0 - self.corridorLength / 2.0
             self.corridorY = startingRoom.roomY
+
+        print(str(self.corridorX) + '/' + str(self.corridorY))
 
         # Move the corridor to connect the original and new room
         cmds.move(self.corridorX, 0.0, self.corridorY, self.corridorMesh)
