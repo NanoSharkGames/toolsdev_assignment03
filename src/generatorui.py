@@ -198,6 +198,7 @@ class GeneratorUI(QtWidgets.QDialog):
 
         self.close()
 
+    @QtCore.Slot()
     def generate(self):
 
         """Generates the dungeon"""
